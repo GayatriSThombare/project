@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comment Retrieieval</title>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script>
+        function onLoad() {
+            gapi.load('client', initClient);
+        }
+
+        function initClient() {
+            gapi.client.init({
+                apiKey: 'AIzaSyDSYvuwqlepbVvujbmC5nfEF-F5NWpfVRs',
+                discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest']
+            }).then(function() {
+                console.log('Client loaded');
+            }, function(error) {
+                console.log('Error loading client: ' + error);
+            });
+        }
+
+        function handleResponse(response) {
+            let comments = [];
+
+            response.result.items.forEach(item => {
+                let comment = item.snippet.topLevelComment.snippet;
+                comments.push([
+                    comment.authorDisplayName,
+                    comment.publishedAt,
+                    comment.updatedAt,
+                    comment.likeCount,
+                    comment.textDisplay
+                ]);
+            });
+
+            displayComments(comments);
+        }
+
+        
+
+        function handleError(error) {
+            console.log('Error: ' + error.result.error.message);
+        }
+
+        function retrieveComments() {
+            let videoId = document.getElementById('video_id').value;
+            gapi.client.youtube.commentThreads.list({
+                part: 'snippet',
+                videoId: videoId,
+                maxResults: 100
+            }).then(handleResponse, handleError);
+        }
+
+        // function displayAnalysis(data) {
+
+        //     let table = '<table><tr><th>Author</th><th>Published At</th><th>Updated At</th><th>Like Count</th><th>Text</th></tr>';
+        //     comments.forEach(comment => {
+        //         table += '<tr><td>' + comment[0] + '</td><td>' + comment[1] + '</td><td>' + comment[2] + '</td><td>' + comment[3] + '</td><td>' + comment[4] + '</td></tr>';
+        //     });
+        //     table += '</table>';
+            
+        //     let content = `
+        //     <h2>Sentiment Analysis</h2>
+
+        //     <p>
+        //     Positive: ${data.pos_pct}%<br>
+        //     Negative: ${data.neg_pct}%<br>
+        //     Neutral: ${data.neu_pct}%  
+        //     </p>
+
+        //     <img src="/static/${data.sentiment_plot}" width="300">
+
+        //     <h3>Sentiment Percentages</h3>
+        //     <table>`;
+
+        //     data.sentiment_df.forEach(row => {content += `<tr><td>${row.sentiment}</td><td>${row.percentage}%</td></tr>`});
+
+        //     content += `</table>`;
+
+            
+        //     document.getElementById('data').innerHTML = table;
+        // } 
+        function displayComments(comments) {
+            let table = '<table><tr><th>Author</th><th>Published At</th><th>Updated At</th><th>Like Count</th><th>Text</th></tr>';
+            comments.forEach(comment => {
+                table += '<tr><td>' + comment[0] + '</td><td>' + comment[1] + '</td><td>' + comment[2] + '</td><td>' + comment[3] + '</td><td>' + comment[4] + '</td></tr>';
+            });
+            table += '</table>';
+            document.getElementById('comments').innerHTML = table;
+        }
+
+
+        
+    </script>
+</head>
+<body onload="onLoad()">
+    <label for="video_id">Enter Video ID:</label><br>
+    <input type="text" id="video_id" name="video_id"><br>
+    <button onclick="retrieveComments()">Retrieve Comments</button>
+    <div id="comments"></div>
+</body>
+</html>
